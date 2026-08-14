@@ -78,6 +78,7 @@ dialog{color:var(--ink);background:#121c30;border:1px solid #c1d2ed2e;border-rad
 .seat-bottom { grid-area: bottom; }
 .table-center { grid-area: center; min-width: 0; }
 .seat-slot { min-width: 0; }
+.seat-slot:empty { display: none; }
 .seat { border: 1px solid #ffffff14; border-radius: 14px; padding: 10px 11px; background: #0d1526cc; transition: box-shadow .2s ease, border-color .2s ease; }
 .seat.active { border-color: var(--gold); box-shadow: 0 0 0 1px #f1c56f55, 0 0 24px #f1c56f2e; }
 .seat.dead { opacity: .45; filter: grayscale(.6); }
