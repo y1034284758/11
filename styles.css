@@ -1,0 +1,106 @@
+:root {
+  --ink: #e9eef9;
+  --muted: #92a0b8;
+  --deep: #080c17;
+  --panel: rgba(17, 25, 43, .82);
+  --panel-solid: #111a2d;
+  --line: rgba(185, 203, 235, .14);
+  --gold: #f1c56f;
+  --gold-2: #ef9e53;
+  --green: #63d9ad;
+  --red: #fa8080;
+  --blue: #7db8ff;
+  font-family: "Noto Sans SC", system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--deep);
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; min-height: 100vh; background: radial-gradient(circle at 20% -10%, #24375a 0, transparent 33rem), radial-gradient(circle at 92% 35%, #1c4b53 0, transparent 30rem), var(--deep); }
+button, input, textarea, select { font: inherit; }
+button { cursor: pointer; }
+.noise { position: fixed; inset: 0; pointer-events: none; opacity: .05; z-index: 3; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.7'/%3E%3C/svg%3E"); }
+.shell { width: min(1440px, calc(100% - 40px)); margin: auto; padding-bottom: 64px; }
+.topbar { height: 88px; display: flex; align-items: center; justify-content: space-between; }
+.brand { display: flex; gap: 11px; align-items: center; color: var(--ink); text-decoration: none; font-size: 17px; font-weight: 800; letter-spacing: .04em; }
+.brand small { display: block; font-size: 9px; color: var(--gold); letter-spacing: .26em; margin-top: -2px; }
+.brand-mark { display: grid; place-items: center; width: 31px; height: 31px; background: linear-gradient(140deg, var(--gold), #b96b3f); color: #172033; border-radius: 8px 12px 8px 3px; font-family: Georgia, serif; font-size: 20px; box-shadow: 0 5px 24px #f1a95833; }
+.topbar-actions { display: flex; align-items: center; gap: 10px; }
+.connection { font-size: 12px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 100px; color: var(--muted); }
+.connection.firebase { color: var(--green); border-color: #63d9ad55; }
+.icon-button { width: 34px; height: 34px; border: 1px solid var(--line); background: #121b2e; color: var(--ink); border-radius: 8px; }
+.icon-button:hover { border-color: var(--gold); }
+.lobby-screen { min-height: calc(100vh - 152px); display: grid; grid-template-columns: 1.45fr .8fr; grid-template-rows: 1fr auto; gap: 40px 9vw; align-items: center; }
+.hero-copy { padding-left: clamp(0px, 6vw, 90px); }
+.eyebrow { color: var(--gold); letter-spacing: .18em; font-size: 11px; font-weight: 700; margin: 0 0 14px; text-transform: uppercase; }
+.hero-copy h1 { font-size: clamp(44px, 6.2vw, 82px); letter-spacing: -.07em; margin: 0; line-height: 1.08; font-weight: 800; }
+.hero-copy h1 em { font-family: Georgia, "Noto Serif SC", serif; font-weight: 400; color: var(--gold); }
+.hero-text { color: #b4c1d7; max-width: 510px; font-size: 17px; line-height: 1.9; margin-top: 28px; }
+.rule-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+.rule-pills span { font-size: 12px; color: var(--blue); border: 1px solid #7db8ff38; padding: 7px 11px; border-radius: 100px; background: #7db8ff0b; }
+.lobby-panel { padding: 33px; border: 1px solid var(--line); border-radius: 18px; background: linear-gradient(135deg, #1b2947c9, #0f1728e3); box-shadow: 0 30px 70px #0000003d; }
+.panel-kicker { color: var(--green); letter-spacing: .14em; font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.lobby-panel h2 { margin: 8px 0 28px; font-size: 24px; }
+label { display: block; color: #c9d4e7; font-size: 12px; font-weight: 600; margin-bottom: 15px; }
+input, textarea, select { width: 100%; margin-top: 7px; border: 1px solid #b8c9e026; border-radius: 8px; background: #09101ed9; color: var(--ink); outline: none; padding: 12px; }
+input:focus, textarea:focus, select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px #f1c56f16; }
+textarea { resize: vertical; font-family: "DM Mono", monospace; font-size: 11px; }
+.primary-button, .secondary-button { width: 100%; border-radius: 8px; padding: 12px 15px; font-weight: 800; font-size: 14px; }
+.primary-button { background: linear-gradient(115deg, #f1c56f, #ed9b51); border: 0; color: #181522; box-shadow: 0 8px 18px #eab35f26; }
+.primary-button:hover { filter: brightness(1.06); transform: translateY(-1px); }
+.primary-button span { float: right; font-size: 17px; line-height: .8; }
+.secondary-button { color: #d7e2f3; background: transparent; border: 1px solid #bfcee433; }
+.secondary-button:hover { border-color: #bfcee48f; background: #ffffff08; }
+.or { margin: 19px 0; color: #76839b; text-align: center; font-size: 11px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; }.or:before,.or:after{content:"";height:1px;background:var(--line)}
+.lobby-help { font-size: 11px; line-height: 1.7; color: #7f8da5; margin: 15px 0 0; }
+.rules-strip { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.rules-strip div { display: flex; gap: 11px; align-items: baseline; padding: 18px max(8px, 2vw); border-right: 1px solid var(--line); }.rules-strip div:last-child{border:0}.rules-strip b{font-family:"DM Mono",monospace;font-size:24px;color:var(--gold)}.rules-strip span{font-size:11px;color:var(--muted)}
+.hidden { display: none !important; }
+.game-header { display: flex; justify-content: space-between; align-items: end; padding: 25px 0 22px; border-bottom: 1px solid var(--line); }.game-header h1 { font-size: clamp(24px, 4vw, 40px); margin: 0; letter-spacing: -.04em; }.round-counter { font-family: "DM Mono", monospace; color: var(--muted); text-align: right; display: flex; align-items: baseline; gap: 5px; }.round-counter span{font-size:9px;letter-spacing:.14em}.round-counter b{font-size:44px;color:var(--gold);line-height:.8}.round-counter small{font-size:12px}
+.lobby-controls { margin-top: 28px; display: grid; grid-template-columns: 1.2fr 1fr auto; gap: 20px; align-items: center; padding: 24px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }.lobby-controls strong{font-size:18px}.lobby-controls p{font-size:13px;color:var(--muted);margin:7px 0 0}.lobby-controls code{font-family:"DM Mono";color:var(--gold);font-size:16px;letter-spacing:.18em}.lobby-controls .primary-button{width:auto;white-space:nowrap}.lobby-player-list{display:flex;gap:8px;flex-wrap:wrap}.lobby-player{font-size:12px;padding:7px 9px;border-radius:8px;background:#ffffff0a;border:1px solid var(--line)}
+.board { padding-top: 22px; }.market-row { display: grid; grid-template-columns: minmax(260px, .9fr) 1.1fr; gap: 18px; }.market-card { min-height: 130px; padding: 19px 22px; background: linear-gradient(120deg, #543e2a, #252135); border: 1px solid #efc16c59; border-radius: 12px; position: relative; overflow: hidden; }.market-card:after{content:"";position:absolute;width:140px;height:140px;border:1px solid #f2c0643b;border-radius:50%;right:-36px;top:-58px}.market-card.empty{background:#111a2c;border-color:var(--line)}.card-overline{display:block;text-transform:uppercase;font-size:10px;letter-spacing:.18em;color:#f5d89e;margin-bottom:7px}.market-card strong{font-size:21px;position:relative;z-index:1}.market-card p{font-size:12px;line-height:1.6;color:#dacaa8;max-width:530px;margin:7px 0 0;position:relative;z-index:1}.market-card.empty p{color:var(--muted)}
+.turn-console { padding: 22px 25px; border: 1px solid var(--line); border-radius: 12px; background: #0c1424b8; display:flex; flex-direction:column; justify-content:center; }.turn-badge { align-self:start; padding: 5px 9px; background:#7db8ff15; color:var(--blue); border:1px solid #7db8ff37; border-radius:100px; font-size:11px; font-weight:700; }.turn-console p{margin:10px 0;color:#c2cfe2;font-size:14px}.turn-actions{margin-top:5px}.turn-actions .primary-button,.turn-actions .secondary-button{width:auto;margin-right:8px;padding:8px 14px;font-size:12px}
+.board-grid { display:grid; grid-template-columns: 280px minmax(360px, 1fr) 240px; gap:18px; margin-top:18px; }.company-panel,.center-panel,.guide-panel{border:1px solid var(--line);background:var(--panel);border-radius:12px}.company-panel{padding:17px}.center-panel{padding:18px}.guide-panel{padding:17px}.company-name{display:flex;align-items:center;justify-content:space-between;gap:9px}.company-name h2{font-size:18px;margin:0}.you-badge{font-size:10px;color:var(--gold);border:1px solid #f1c56f4b;border-radius:100px;padding:4px 7px}.company-status{font-size:11px;color:var(--muted);margin:6px 0 17px}.metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px}.metric{padding:10px;border:1px solid #ffffff0d;border-radius:8px;background:#080e1b87}.metric span{display:block;color:var(--muted);font-size:10px}.metric b{font-family:"DM Mono",monospace;font-size:17px;margin-top:3px;display:block}.metric.gold b{color:var(--gold)}.metric.red b{color:var(--red)}.metric.green b{color:var(--green…11339 tokens truncated…Instances(player,'A04').length*5 + assetInstances(player,'A16').length*assetInstances(player,'A05').length*5 + assetInstances(player,'A16').length*assetInstances(player,'A06').length*5;
+  revenue += assetInstances(player,'A19').length*5 + (flags.morale ? player.assets.length*3 : 0) + (flags.esgRounds ? 10 : 0) + (flags.creditIncome||0);
+  let fixed=50 - assetInstances(player,'A02').length*5 - assetInstances(player,'A30').length*5 - (flags.permanentFixed||0) - (flags.fixedCut||0) + (flags.fixedAttack?10:0) + (state.global.laborRounds?10:0); if(market.id==='M05')fixed*=1.2;if(flags.opLeverage)fixed=80;
+  let interest=0, cashPayment=0;
+  for(const loan of [...player.loans]) { let payment=loan.payment;let interestPart=payment;let principalPaid=0;
+    if(loan.id==='F02'){const table=[[24,40.9],[20.7,44.2],[17.2,47.7],[13.4,51.5],[9.3,55.6],[4.8,60.1]];[interestPart,principalPaid]=table[loan.payments]||[0,loan.principal];payment=interestPart+principalPaid;}
+    else if(loan.id==='F04'){const table=[[9,33.5],[8.3,34.2],[6.6,35.9],[4.8,37.7],[2.9,39.6]];[interestPart,principalPaid]=table[loan.payments]||[0,loan.principal];payment=interestPart+principalPaid;}
+    else { if(market.id==='M02')interestPart+=loan.principal*.02;if(market.id==='M03'||market.id==='M10')interestPart=Math.max(loan.principal*.01,interestPart-loan.principal*.01);loan.remaining--;if(loan.remaining<=0)principalPaid=loan.principal;payment=interestPart+principalPaid; }
+    interest+=interestPart;cashPayment+=payment;loan.principal=Math.max(0,loan.principal-principalPaid);loan.payments++; if(loan.principal<=.1) {player.loans.splice(player.loans.indexOf(loan),1);if(loan.id==='F07')player.ev+=30;}
+  }
+  if(flags.finLeverage)interest*=1.5;cashPayment+=flags.preferred||0;let ebit=revenue-fixed;let pretax=ebit-interest;let taxRate=market.id==='M07'?.15:market.id==='M08'?.35:.25;if(flags.taxCut)taxRate=Math.max(.05,taxRate-.1);let tax=Math.max(pretax*taxRate,0);let net=pretax-tax;if(flags.profitDouble&&net>0)net*=2;if(flags.scorecard&&net>0)net*=1.2;if(flags.peRounds&&net>0)net*=.8;
+  player.cash-=cashPayment;if(flags.taxShield)player.cash+=interest*.25;let retention=flags.retention || (flags.dilutionRounds ? .6 : .7);player.equity+=net>0?net*retention:net;updateDebt(player);let pe=clamp(8+(market.pe||0)+(flags.peBoost||0)+personalPe,4,12);player.ev=net>0?player.equity+net*(pe*.5):Math.max(player.equity*.5,0);if(market.id==='M12')player.ev*=.85;if(market.id==='M20')player.ev*=1.1;
+  if(market.id==='M14'&&debtRatio(player)>.5)player.cash-=20;if(market.id==='M17')player.cash-=(assetInstances(player,'A06').length+assetInstances(player,'A27').length)*40;if(market.id==='M15'&&!owns(player,'A24'))player.cash-=player.assets.filter(asset=>CARD[asset.id].esg==='棕色').length*20; if(market.id==='M15')player.cash+=player.assets.filter(asset=>CARD[asset.id].esg==='绿色').length*15;
+  if(player.cash>100){if(flags.cashInterest)player.cash+=(player.cash-100)*.08;else if(!owns(player,'A28'))player.cash-=(player.cash-100)*.02;}
+  if(state.round===5||state.round===9)player.assets.filter(asset=>CARD[asset.id].category==='生产').forEach(asset=>asset.depreciation*=.75);
+  const ratio=debtRatio(player); if(player.equity<50||ratio>.95){player.status='bankrupt';log(`${player.name} 已破产淘汰。`);}else {player.highDebtRounds=ratio>.9&&player.cash<0?player.highDebtRounds+1:0;if(player.highDebtRounds>=2){player.status='bankrupt';log(`${player.name} 因持续无法偿债被淘汰。`);}}
+  while(player.hand.length<Math.min(5,10))draw(player);if(market.id==='M20')draw(player);if(owns(player,'A03'))draw(player,'strategy');player.lastEbit=ebit;player.lastNet=net;
+  ['dilutionRounds','peRounds','esgRounds','costAttack','fixedAttack'].forEach(key=>{if(flags[key])flags[key]--;});if(flags.monopoly?.rounds){flags.monopoly.rounds--;if(!flags.monopoly.rounds)delete flags.monopoly;} ['marketImmune','assetBonus','peBoost','retention','taxShield','opLeverage','finLeverage','profitDouble','fixedCut','cashInterest','creditIncome','taxCut','dumpCategory'].forEach(key=>delete flags[key]); return {ebit,net};
+}
+
+function render() {
+  setConnection(); const inGame=Boolean(state); $('#lobby-screen').classList.toggle('hidden',inGame); $('#game-screen').classList.toggle('hidden',!inGame); if(!state)return;
+  $('#room-label').textContent=`房间 · ${state.code}`;$('#room-code-display').textContent=state.code;$('#round-number').textContent=state.round||0; $('#lobby-controls').classList.toggle('hidden',state.phase!=='lobby');$('#board').classList.toggle('hidden',state.phase==='lobby');
+  if(state.phase==='lobby'){ $('#phase-title').textContent='等待企业家入场';$('#lobby-player-list').innerHTML=state.players.map(player=>`<span class="lobby-player">● ${escapeHtml(player.name)}</span>`).join(''); $('#start-game').classList.toggle('hidden',!isHost()); return; }
+  $('#phase-title').textContent=state.phase==='final'?'资本博弈 · 最终排名':state.phase==='market'?`第 ${state.round} 回合 · 宏观风向待定`:`第 ${state.round} 回合 · 资本行动中`;
+  renderMarket();renderTurn();renderSelf();renderScoreboard();renderHand();renderLog();
+}
+function renderMarket(){const el=$('#market-card');if(!state.market){el.className='market-card empty';el.innerHTML='<span class="card-overline">市场环境</span><strong>等待揭晓</strong><p>房主翻开市场卡后，所有企业会受同一宏观环境影响。</p>';return;}el.className='market-card';el.innerHTML=`<span class="card-overline">${state.market.id} · 市场环境 · PE ${state.market.pe>0?'+':''}${state.market.pe}</span><strong>${escapeHtml(state.market.name)}</strong><p>${escapeHtml(state.market.text)}</p>`;}
+function renderTurn(){const player=current();const badge=$('#turn-badge'),hint=$('#turn-hint'),actions=$('#turn-actions');if(state.phase==='market'){badge.textContent='市场阶段';hint.textContent=isHost()?'由你翻开本回合市场卡。':'等待房主揭晓市场环境。';actions.innerHTML=isHost()?'<button id="reveal-market" class="primary-button">揭示市场环境</button>':'';return;}if(state.phase==='final'){const winner=[...state.players].sort((a,b)=>b.ev-a.ev)[0];badge.textContent='终局结算';hint.textContent=`${winner.name} 以 ${money(winner.ev)} 暂居第一。`;actions.innerHTML='';return;}const mine=player?.id===userId;badge.textContent=mine?'轮到你行动':`等待 ${player?.name} 行动`;hint.textContent=mine?`你已使用 ${self().actions} / ${3+(self().flags.assetBonus||0)} 次行动。`: '对手正在进行融资、投资或策略决策。';actions.innerHTML=mine?'<button id="end-turn" class="secondary-button">结束我的行动</button>':'';}
+function renderSelf(){const player=self();if(!player)return;const ratio=debtRatio(player);const loans=player.loans.length?player.loans.map(loan=>`<div class="debt-chip"><span>${CARD[loan.id]?.name||loan.id}</span><strong>${money(loan.principal)}</strong></div>`).join(''):'<div class="empty-state">暂无未偿债务</div>';$('#self-panel').innerHTML=`<div class="company-name"><h2>${escapeHtml(player.name)}的企业</h2><span class="you-badge">你</span></div><p class="company-status">${player.status==='alive'?'经营中':'已淘汰'} · ${player.assets.length} 项资产</p><div class="metrics"><div class="metric gold"><span>现金</span><b>${money(player.cash)}</b></div><div class="metric green"><span>企业价值</span><b>${money(player.ev)}</b></div><div class="metric"><span>股东权益</span><b>${money(player.equity)}</b></div><div class="metric ${player.debt?'red':''}"><span>总负债</span><b>${money(player.debt)}</b></div><div class="metric"><span>信用额度</span><b>${money(credit(player))}</b></div><div class="metric"><span>上回合 EBIT</span><b>${money(player.lastEbit)}</b></div></div><div class="debt-gauge"><p><span>资产负债率</span><b>${pct(ratio)}</b></p><div class="gauge"><i style="width:${clamp(ratio*100,0,100)}%"></i></div></div><p class="debt-list-title">债务追踪</p><div class="debt-list">${loans}</div>`;const assets=player.assets.filter(asset=>asset.active!==false).map(asset=>`<div class="asset-tile">${escapeHtml(CARD[asset.id].name)}<small>${money(CARD[asset.id].income*asset.depreciation)} / 回合</small></div>`).join('');$('#asset-portfolio').innerHTML=assets||'<p class="empty-state">尚未购入资产。资本需要开始流动。</p>';$('#asset-count').textContent=`${player.assets.length} 张持有资产`;let advice=ratio>=.8?'负债已进入<strong>危机区间</strong>：无法新增融资，应优先偿债或使用债转股。':ratio>=.7?'负债率处于<strong>警告区间</strong>：每回合将产生信用修复成本。':player.cash<100?'现金偏低：保留资金以支付利息和到期本金。':'现金充裕：注意超出 100 万的现金将发生通胀折旧。';$('#financial-advice').innerHTML=advice;}
+function renderScoreboard(){const sorted=[...state.players].sort((a,b)=>b.ev-a.ev);$('#scoreboard').innerHTML=sorted.map((player,index)=>`<div class="score-row ${player.id===userId?'self':''}"><span class="score-rank">${String(index+1).padStart(2,'0')}</span><span class="score-name">${escapeHtml(player.name)}</span><b class="score-value">${money(player.ev)}</b><span class="score-state">${player.status==='alive'?'存续':'淘汰'}</span></div>`).join('');}
+function renderHand(){const player=self();if(!player)return;const allowed=state.phase==='actions'&&current()?.id===userId&&player.status==='alive';$('#hand-note').textContent=allowed?`你已行动 ${player.actions} / ${3+(player.flags.assetBonus||0)} 次`:'等待你的行动回合';$('#hand').innerHTML=player.hand.map(code=>{const card=CARD[code],disabled=!allowed||player.actions>=3+(player.flags.assetBonus||0);const info=card.type==='asset'?`投资 ${money(card.cost)} · 收益 ${money(card.income)}`:card.type==='finance'?`融资 ${money(card.cash)} · ${card.kind==='debt'?'期限 '+card.term+' 回合':card.kind==='equity'?'权益融资':'特殊融资'}`:card.target+' · 策略';return `<article class="card ${card.type} ${disabled?'disabled':''}"><div class="card-top"><span class="card-type">${cardType(card)}</span><span class="card-id">${card.id}</span></div><h3>${escapeHtml(card.name)}</h3><p>${escapeHtml(card.text)}</p><div class="card-foot"><span class="card-cost">${info}</span><button class="play-button" data-play="${card.id}" ${disabled?'disabled':''}>打出</button></div></article>`;}).join('')||'<p class="empty-state">没有手牌。</p>';}
+function renderLog(){$('#game-log').innerHTML=state.log.map(entry=>`<div class="log-entry"><time>R${entry.round}</time>${escapeHtml(entry.text)}</div>`).join('');}
+
+$('#create-room').addEventListener('click',()=>createRoom().catch(error=>toast(error.message)));
+$('#join-room').addEventListener('click',()=>joinRoom().catch(error=>toast(error.message)));
+$('#start-game').addEventListener('click',()=>startGame());
+$('#settings-button').addEventListener('click',()=>$('#settings-dialog').showModal());
+$('#disconnect-firebase').addEventListener('click',()=>{localStorage.removeItem('capital-empire-firebase');transport=new LocalTransport();setConnection();toast('已切换到本地试玩。');});
+$('#connect-firebase').addEventListener('click',()=>connectFirebase());
+$('#confirm-choice').addEventListener('click',async()=>{if(!pendingChoice)return;const code=pendingChoice;pendingChoice=null;$('#choice-dialog').close();await playCard(code,$('#choice-select').value);});
+document.addEventListener('click',event=>{const play=event.target.closest('[data-play]');if(play)openChoice(play.dataset.play);if(event.target.id==='reveal-market')revealMarket();if(event.target.id==='end-turn')endTurn();if(event.target.id==='toggle-log')$('#log-section').classList.toggle('hidden');});
+async function connectFirebase(){try{const config=JSON.parse($('#firebase-config').value);if(!config.apiKey||!config.projectId)throw Error('配置中至少需要 apiKey 与 projectId。');const [{initializeApp},{getAuth,signInAnonymously},{getFirestore,doc,setDoc,getDoc,onSnapshot}]=await Promise.all([import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js'),import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js'),import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js')]);const app=initializeApp(config);const auth=getAuth(app);await signInAnonymously(auth);transport=new FirebaseTransport({db:getFirestore(app),doc,setDoc,getDoc,onSnapshot});localStorage.setItem('capital-empire-firebase',JSON.stringify(config));setConnection();$('#settings-dialog').close();toast('Firebase 已连接。现在可创建远程联机房间。');}catch(error){toast(`连接失败：${error.message}`);}}
+async function boot(){transport=new LocalTransport();const saved=localStorage.getItem('capital-empire-firebase');if(saved){$('#firebase-config').value=saved;try{await connectFirebase();}catch{transport=new LocalTransport();}}setConnection();}
+boot();
