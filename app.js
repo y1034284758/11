@@ -57,12 +57,71 @@ class LocalTransport {
   listen(code, callback) { const handler = ({data}) => data.code === code && callback(data.game); this.channel.addEventListener('message', handler); return () => this.channel.removeEventListener('message', handler); }
 }
 
-class FirebaseTransport {
-  constructor(api) { this.mode = 'firebase'; this.api = api; }
-  async create(code, game) { await this.api.setDoc(this.api.doc(this.api.db,'games',code), game); }
-  async read(code) { const snapshot = await this.api.getDoc(this.api.doc(this.api.db,'games',code)); return snapshot.exists() ? snapshot.data() : null; }
-  async save(code, game) { await this.api.setDoc(this.api.doc(this.api.db,'games',code), game); }
-  listen(code, callback) { return this.api.onSnapshot(this.api.doc(this.api.db,'games',code), snapshot => snapshot.exists() && callback(snapshot.data())); }
+class CloudflareTransport {
+  constructor(baseUrl) {
+    this.mode = 'cloudflare';
+    this.base = String(baseUrl || '').trim().replace(/\/+$/, '');
+    this.wsBase = this.base
+      ? this.base.replace(/^http/, 'ws')
+      : `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}`;
+    this.socket = null;
+    this.listenCb = null;
+    this.reconnectTimer = null;
+    this.reconnectAttempts = 0;
+    this.closedByUser = false;
+    this.code = null;
+  }
+  url(path) { return this.base ? this.base + path : path; }
+  async api(path, options = {}) {
+    const res = await fetch(this.url(path), { headers: { 'Content-Type': 'application/json' }, ...options });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw Error(data.error || `请求失败（${res.status}）`);
+    return data;
+  }
+  async create(code, game) { const data = await this.api('/api/rooms', { method: 'POST', body: JSON.stringify({ code, state: game }) }); return data.state; }
+  async read(code) { const data = await this.api(`/api/rooms/${code}`); return data.state; }
+  async join(code, name) { const data = await this.api(`/api/rooms/${code}/join`, { method: 'POST', body: JSON.stringify({ playerId: userId, name }) }); return data.state; }
+  async save(code, game) {
+    try {
+      const data = await this.api(`/api/rooms/${code}/state`, { method: 'POST', body: JSON.stringify({ playerId: userId, state: game }) });
+      return data.state;
+    } catch (error) {
+      if (String(error.message).includes('已过期')) {
+        const fresh = await this.read(code);
+        if (this.listenCb) this.listenCb(fresh);
+        throw Error('状态已同步到最新，请重试刚才的操作。');
+      }
+      throw error;
+    }
+  }
+  listen(code, callback) {
+    this.listenCb = callback;
+    this.code = code;
+    this.closedByUser = false;
+    this.connect(code);
+    return () => { this.closedByUser = true; clearTimeout(this.reconnectTimer); try { this.socket?.close(); } catch {} };
+  }
+  connect(code) {
+    clearTimeout(this.reconnectTimer);
+    try {
+      const ws = new WebSocket(`${this.wsBase}/api/rooms/${code}/ws`);
+      this.socket = ws;
+      ws.onopen = () => { this.reconnectAttempts = 0; };
+      ws.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          if (msg.type === 'state' && this.listenCb) this.listenCb(msg.state);
+        } catch {}
+      };
+      ws.onclose = () => {
+        if (this.closedByUser) return;
+        const delay = Math.min(1000 * 2 ** this.reconnectAttempts, 15000);
+        this.reconnectAttempts += 1;
+        this.reconnectTimer = setTimeout(() => this.connect(code), delay);
+      };
+      ws.onerror = () => { try { ws.close(); } catch {} };
+    } catch {}
+  }
 }
 
 function makePlayer(name) {
@@ -91,21 +150,30 @@ function updateDebt(player) { player.debt = player.loans.filter(loan=>!loan.outO
 function nowText() { return `第 ${state.round || 0} 回合`; }
 
 function toast(text) { const el = $('#toast'); el.textContent = text; el.classList.add('show'); clearTimeout(toast.timer); toast.timer = setTimeout(() => el.classList.remove('show'), 2900); }
-function setConnection() { const el = $('#connection-state'); el.textContent = transport?.mode === 'firebase' ? 'Firebase 已联机' : '本地试玩'; el.className = `connection ${transport?.mode || 'local'}`; }
+function setConnection() { const el = $('#connection-state'); el.textContent = transport?.mode === 'cloudflare' ? 'Cloudflare 已联机' : '本地试玩'; el.className = `connection ${transport?.mode || 'local'}`; }
 async function commit() { if (!state || !activeRoom) return; state.version = (state.version || 0) + 1; await transport.save(activeRoom, structuredClone(state)); render(); }
 function startListening(code) { unsubscribe?.(); unsubscribe = transport.listen(code, remote => { if (!state || remote.version >= state.version) { state = remote; render(); } }); }
 
 async function createRoom() {
   const host = makePlayer($('#player-name').value); const game = makeGame(host);
-  activeRoom = game.code; state = game; await transport.create(activeRoom, state); startListening(activeRoom); render();
+  activeRoom = game.code; state = game;
+  const created = await transport.create(activeRoom, state); if (created) state = created;
+  startListening(activeRoom); render();
 }
 async function joinRoom() {
   const code = $('#room-code').value.trim().toUpperCase(); if (!/^[A-Z0-9]{6}$/.test(code)) return toast('请输入 6 位有效房间码。');
-  const game = await transport.read(code); if (!game) return toast('没有找到这个房间。请检查邀请码和联机方式。');
-  if (game.phase !== 'lobby') return toast('该对局已经开始，暂不支持中途加入。');
-  if (game.players.length >= 4) return toast('房间已满（最多 4 位企业家）。');
-  if (!game.players.some(player => player.id === userId)) game.players.push(makePlayer($('#player-name').value));
-  state = game; activeRoom = code; await commit(); startListening(code); render();
+  let game;
+  if (typeof transport.join === 'function') {
+    try { game = await transport.join(code, $('#player-name').value); }
+    catch (error) { return toast(error.message); }
+  } else {
+    game = await transport.read(code); if (!game) return toast('没有找到这个房间。请检查邀请码和联机方式。');
+    if (game.phase !== 'lobby') return toast('该对局已经开始，暂不支持中途加入。');
+    if (game.players.length >= 4) return toast('房间已满（最多 4 位企业家）。');
+    if (!game.players.some(player => player.id === userId)) game.players.push(makePlayer($('#player-name').value));
+    state = game; activeRoom = code; await commit();
+  }
+  state = game; activeRoom = code; startListening(code); render();
 }
 async function startGame() {
   if (!isHost()) return toast('只有房主可以开始游戏。'); if (state.players.length < 2) return toast('至少需要 2 位企业家入场。');
@@ -286,10 +354,33 @@ $('#create-room').addEventListener('click',()=>createRoom().catch(error=>toast(e
 $('#join-room').addEventListener('click',()=>joinRoom().catch(error=>toast(error.message)));
 $('#start-game').addEventListener('click',()=>startGame());
 $('#settings-button').addEventListener('click',()=>$('#settings-dialog').showModal());
-$('#disconnect-firebase').addEventListener('click',()=>{localStorage.removeItem('capital-empire-firebase');transport=new LocalTransport();setConnection();toast('已切换到本地试玩。');});
-$('#connect-firebase').addEventListener('click',()=>connectFirebase());
+$('#disconnect-cloudflare').addEventListener('click',()=>{if(state)return toast('请先刷新页面退出当前对局，再切换联机方式。');localStorage.removeItem('capital-empire-cloudflare');transport=new LocalTransport();setConnection();toast('已切换到本地试玩。');});
+$('#connect-cloudflare').addEventListener('click',()=>connectCloudflare());
 $('#confirm-choice').addEventListener('click',async()=>{if(!pendingChoice)return;const code=pendingChoice;pendingChoice=null;$('#choice-dialog').close();await playCard(code,$('#choice-select').value);});
 document.addEventListener('click',event=>{const play=event.target.closest('[data-play]');if(play)openChoice(play.dataset.play);if(event.target.id==='reveal-market')revealMarket();if(event.target.id==='end-turn')endTurn();if(event.target.id==='toggle-log')$('#log-section').classList.toggle('hidden');});
-async function connectFirebase(){try{const config=JSON.parse($('#firebase-config').value);if(!config.apiKey||!config.projectId)throw Error('配置中至少需要 apiKey 与 projectId。');const [{initializeApp},{getAuth,signInAnonymously},{getFirestore,doc,setDoc,getDoc,onSnapshot}]=await Promise.all([import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js'),import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js'),import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js')]);const app=initializeApp(config);const auth=getAuth(app);await signInAnonymously(auth);transport=new FirebaseTransport({db:getFirestore(app),doc,setDoc,getDoc,onSnapshot});localStorage.setItem('capital-empire-firebase',JSON.stringify(config));setConnection();$('#settings-dialog').close();toast('Firebase 已连接。现在可创建远程联机房间。');}catch(error){toast(`连接失败：${error.message}`);}}
-async function boot(){transport=new LocalTransport();const saved=localStorage.getItem('capital-empire-firebase');if(saved){$('#firebase-config').value=saved;try{await connectFirebase();}catch{transport=new LocalTransport();}}setConnection();}
+async function connectCloudflare() {
+  const base = $('#cloudflare-url').value.trim();
+  if (base && !/^https?:\/\//.test(base)) return toast('请输入以 http(s):// 开头的 Worker 地址（留空则使用同域 /api）。');
+  if (state) return toast('请先刷新页面退出当前对局，再切换联机方式。');
+  const candidate = new CloudflareTransport(base);
+  try { await candidate.api('/api/ping'); }
+  catch (error) { return toast('无法连接 Cloudflare 服务：' + error.message); }
+  transport = candidate;
+  if (base) localStorage.setItem('capital-empire-cloudflare', base);
+  else localStorage.removeItem('capital-empire-cloudflare');
+  setConnection(); $('#settings-dialog').close(); toast('已连接 Cloudflare 联机服务，创建房间即可跨设备开局。');
+}
+const DEFAULT_CLOUDFLARE_URL = 'https://capital-empire.y1034284758.workers.dev';
+async function boot() {
+  transport = new LocalTransport();
+  const saved = localStorage.getItem('capital-empire-cloudflare');
+  const target = saved || DEFAULT_CLOUDFLARE_URL;
+  if (target) {
+    $('#cloudflare-url').value = target;
+    const candidate = new CloudflareTransport(target);
+    try { await candidate.api('/api/ping'); transport = candidate; }
+    catch { if (saved) toast('Cloudflare 服务暂不可用，已使用本地试玩。'); }
+  }
+  setConnection();
+}
 boot();

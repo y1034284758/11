@@ -41,7 +41,7 @@
           <div class="or"><span>或</span></div>
           <label>邀请码<input id="room-code" maxlength="6" placeholder="输入 6 位房间码" autocomplete="off" /></label>
           <button id="join-room" class="secondary-button">加入房间</button>
-          <p class="lobby-help">本地试玩可在同一浏览器多标签同步。连接 Firebase 后，即可远程联机。</p>
+          <p class="lobby-help">本地试玩可在同一浏览器多标签同步；连接 Cloudflare 后，即可跨设备远程联机。</p>
         </div>
         <div class="rules-strip">
           <div><b>300</b><span>初始现金（万）</span></div>
@@ -111,11 +111,11 @@
     <dialog id="settings-dialog" class="settings-dialog">
       <form method="dialog">
         <button class="close-dialog" value="cancel" aria-label="关闭">×</button>
-        <p class="eyebrow">远程多人联机</p><h2>连接 Firebase</h2>
-        <p>填入 Firebase Web 配置后，创建的房间可让远程玩家实时加入。配置只保存在当前浏览器。</p>
-        <label>Firebase 配置（JSON）<textarea id="firebase-config" rows="8" placeholder='{"apiKey":"…","authDomain":"…","projectId":"…"}'></textarea></label>
-        <div class="dialog-actions"><button id="disconnect-firebase" class="secondary-button" value="cancel" type="button">使用本地试玩</button><button id="connect-firebase" class="primary-button" value="default" type="button">连接并保存</button></div>
-        <p class="lobby-help">首次使用请在 Firebase 控制台开启「匿名登录」和 Firestore 数据库，并部署项目内的 <code>firestore.rules</code>。</p>
+        <p class="eyebrow">跨设备远程联机</p><h2>连接 Cloudflare</h2>
+        <p>填入你的 Cloudflare Worker 地址后，创建的房间可让任意设备上的朋友实时加入。地址只保存在当前浏览器。</p>
+        <label>Worker 地址<input id="cloudflare-url" placeholder="https://capital-empire.y1034284758.workers.dev" autocomplete="off" /></label>
+        <div class="dialog-actions"><button id="disconnect-cloudflare" class="secondary-button" value="cancel" type="button">使用本地试玩</button><button id="connect-cloudflare" class="primary-button" value="default" type="button">连接并保存</button></div>
+        <p class="lobby-help">部署方法见项目 README：<code>wrangler deploy</code> 后把 Workers 域名粘贴到这里。留空则使用同域名下的 <code>/api</code>（适合 Cloudflare Pages + Functions）。</p>
       </form>
     </dialog>
 
