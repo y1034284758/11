@@ -64,46 +64,37 @@
         </div>
 
         <div id="board" class="board hidden">
-          <section class="market-row">
-            <div id="market-card" class="market-card empty">
-              <span class="card-overline">市场环境</span>
-              <strong>等待揭晓</strong>
-              <p>每回合的宏观环境将重塑全场格局。</p>
+          <div class="table-stage">
+            <div class="table-grid">
+              <div id="seat-top" class="seat-slot seat-top"></div>
+              <div id="seat-left" class="seat-slot seat-left"></div>
+              <div id="table-center" class="table-center">
+                <section class="market-row">
+                  <div id="market-card" class="market-card empty">
+                    <span class="card-overline">市场环境</span>
+                    <strong>等待揭晓</strong>
+                    <p>每回合的宏观环境将重塑全场格局。</p>
+                  </div>
+                  <div class="turn-console">
+                    <span id="turn-badge" class="turn-badge">等待开始</span>
+                    <p id="turn-hint">房主可在所有玩家入场后开始游戏。</p>
+                    <div id="turn-actions" class="turn-actions"></div>
+                  </div>
+                </section>
+                <div class="center-lower">
+                  <div class="section-heading"><span>公开账本 · 实时排名</span><button id="toggle-log" class="text-button">查看记录</button></div>
+                  <div id="scoreboard" class="scoreboard"></div>
+                  <section id="log-section" class="log-section hidden"><div class="section-heading"><span>资本市场记录</span></div><div id="game-log" class="game-log"></div></section>
+                </div>
+              </div>
+              <div id="seat-right" class="seat-slot seat-right"></div>
+              <div id="seat-bottom" class="seat-slot seat-bottom"></div>
             </div>
-            <div class="turn-console">
-              <span id="turn-badge" class="turn-badge">等待开始</span>
-              <p id="turn-hint">房主可在所有玩家入场后开始游戏。</p>
-              <div id="turn-actions" class="turn-actions"></div>
-            </div>
-          </section>
-
-          <section class="board-grid">
-            <aside id="self-panel" class="company-panel self-panel"></aside>
-            <section class="center-panel">
-              <div class="section-heading"><span>公开账本</span><button id="toggle-log" class="text-button">查看记录</button></div>
-              <div id="scoreboard" class="scoreboard"></div>
-              <div class="section-heading"><span>企业资产</span><span id="asset-count" class="muted"></span></div>
-              <div id="asset-portfolio" class="asset-portfolio"></div>
-            </section>
-            <aside class="guide-panel">
-              <div class="section-heading"><span>决策仪表</span></div>
-              <div id="financial-advice" class="financial-advice"></div>
-              <div class="divider"></div>
-              <p class="guide-title">本局规则</p>
-              <ul>
-                <li>信用额度 = (权益 + 负债) × 40% − 负债</li>
-                <li>资产负债率超过 95% 即破产</li>
-                <li>盈利按市盈率折算为企业价值</li>
-              </ul>
-            </aside>
-          </section>
-
+          </div>
           <section class="hand-section">
             <div class="hand-heading"><div><p class="eyebrow">你的决策</p><h2>手牌</h2></div><p id="hand-note">每回合最多打出 3 张卡</p></div>
             <div id="hand" class="hand"></div>
           </section>
-
-          <section id="log-section" class="log-section hidden"><div class="section-heading"><span>资本市场记录</span></div><div id="game-log" class="game-log"></div></section>
         </div>
       </section>
     </main>
@@ -130,6 +121,16 @@
       </form>
     </dialog>
 
+    <dialog id="card-dialog" class="card-dialog">
+      <form method="dialog">
+        <button class="close-dialog" value="cancel" aria-label="关闭">×</button>
+        <p class="eyebrow" id="card-detail-type">卡牌</p>
+        <h2 id="card-detail-name">卡牌名称</h2>
+        <div id="card-detail-body" class="card-detail-body"></div>
+        <div class="dialog-actions"><button id="card-detail-close" class="secondary-button" value="cancel" type="button">关闭</button><button id="card-detail-play" class="primary-button" type="button">打出这张牌</button></div>
+        <p class="lobby-help">长按手牌可随时查看卡牌详细说明。</p>
+      </form>
+    </dialog>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
     <script type="module" src="./app.js?v=20260814"></script>
   </body>

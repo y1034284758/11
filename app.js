@@ -346,9 +346,100 @@ function render() {
 }
 function renderMarket(){const el=$('#market-card');if(!state.market){el.className='market-card empty';el.innerHTML='<span class="card-overline">市场环境</span><strong>等待揭晓</strong><p>房主翻开市场卡后，所有企业会受同一宏观环境影响。</p>';return;}el.className='market-card';el.innerHTML=`<span class="card-overline">${state.market.id} · 市场环境 · PE ${state.market.pe>0?'+':''}${state.market.pe}</span><strong>${escapeHtml(state.market.name)}</strong><p>${escapeHtml(state.market.text)}</p>`;}
 function renderTurn(){const player=current();const badge=$('#turn-badge'),hint=$('#turn-hint'),actions=$('#turn-actions');if(state.phase==='market'){badge.textContent='市场阶段';hint.textContent=isHost()?'由你翻开本回合市场卡。':'等待房主揭晓市场环境。';actions.innerHTML=isHost()?'<button id="reveal-market" class="primary-button">揭示市场环境</button>':'';return;}if(state.phase==='final'){const winner=[...state.players].sort((a,b)=>b.ev-a.ev)[0];badge.textContent='终局结算';hint.textContent=`${winner.name} 以 ${money(winner.ev)} 暂居第一。`;actions.innerHTML='';return;}const mine=player?.id===userId;badge.textContent=mine?'轮到你行动':`等待 ${player?.name} 行动`;hint.textContent=mine?`你已使用 ${self().actions} / ${3+(self().flags.assetBonus||0)} 次行动。`: '对手正在进行融资、投资或策略决策。';actions.innerHTML=mine?'<button id="end-turn" class="secondary-button">结束我的行动</button>':'';}
-function renderSelf(){const player=self();if(!player)return;const ratio=debtRatio(player);const loans=player.loans.length?player.loans.map(loan=>`<div class="debt-chip"><span>${CARD[loan.id]?.name||loan.id}</span><strong>${money(loan.principal)}</strong></div>`).join(''):'<div class="empty-state">暂无未偿债务</div>';$('#self-panel').innerHTML=`<div class="company-name"><h2>${escapeHtml(player.name)}的企业</h2><span class="you-badge">你</span></div><p class="company-status">${player.status==='alive'?'经营中':'已淘汰'} · ${player.assets.length} 项资产</p><div class="metrics"><div class="metric gold"><span>现金</span><b>${money(player.cash)}</b></div><div class="metric green"><span>企业价值</span><b>${money(player.ev)}</b></div><div class="metric"><span>股东权益</span><b>${money(player.equity)}</b></div><div class="metric ${player.debt?'red':''}"><span>总负债</span><b>${money(player.debt)}</b></div><div class="metric"><span>信用额度</span><b>${money(credit(player))}</b></div><div class="metric"><span>上回合 EBIT</span><b>${money(player.lastEbit)}</b></div></div><div class="debt-gauge"><p><span>资产负债率</span><b>${pct(ratio)}</b></p><div class="gauge"><i style="width:${clamp(ratio*100,0,100)}%"></i></div></div><p class="debt-list-title">债务追踪</p><div class="debt-list">${loans}</div>`;const assets=player.assets.filter(asset=>asset.active!==false).map(asset=>`<div class="asset-tile">${escapeHtml(CARD[asset.id].name)}<small>${money(CARD[asset.id].income*asset.depreciation)} / 回合</small></div>`).join('');$('#asset-portfolio').innerHTML=assets||'<p class="empty-state">尚未购入资产。资本需要开始流动。</p>';$('#asset-count').textContent=`${player.assets.length} 张持有资产`;let advice=ratio>=.8?'负债已进入<strong>危机区间</strong>：无法新增融资，应优先偿债或使用债转股。':ratio>=.7?'负债率处于<strong>警告区间</strong>：每回合将产生信用修复成本。':player.cash<100?'现金偏低：保留资金以支付利息和到期本金。':'现金充裕：注意超出 100 万的现金将发生通胀折旧。';$('#financial-advice').innerHTML=advice;}
+function assetChips(player) {
+  const assets = player.assets.filter(item => item.active !== false);
+  return assets.slice(0, 8).map(item => `<span class="asset-chip">${CARD[item.id].id} ${escapeHtml(CARD[item.id].name)}<i>${money(CARD[item.id].income * (item.depreciation || 1))}/回</i></span>`).join('') + (assets.length > 8 ? `<span class="asset-chip more">+${assets.length - 8} 项</span>` : '');
+}
+function seatHTML(player, isSelf, isTurn) {
+  const ratio = debtRatio(player);
+  const debt = player.loans.length ? player.loans.map(loan => `<div class="debt-chip"><span>${CARD[loan.id]?.name || loan.id}</span><strong>${money(loan.principal)}</strong></div>`).join('') : '<div class="empty-state">暂无未偿债务</div>';
+  const advice = isSelf ? (ratio >= .8 ? '<div class="seat-advice warn">负债危机：无法新增融资，应优先偿债或债转股。</div>' : ratio >= .7 ? '<div class="seat-advice">负债警告：每回合将产生信用修复成本。</div>' : player.cash < 100 ? '<div class="seat-advice">现金偏低：留足资金支付利息与到期本金。</div>' : '<div class="seat-advice">现金充裕：注意超出 100 万的现金将发生通胀折旧。</div>') : '';
+  return `<div class="seat ${isTurn ? 'active' : ''} ${player.status === 'alive' ? '' : 'dead'}">
+    <div class="seat-head">
+      <span class="seat-avatar" style="background:${player.color}">${escapeHtml(player.name.slice(0, 1))}</span>
+      <span class="seat-name">${escapeHtml(player.name)}</span>
+      ${isSelf ? '<span class="seat-badge you">你</span>' : ''}
+      <span class="seat-status">${player.status === 'alive' ? '存续' : '已淘汰'}</span>
+      ${isTurn ? '<span class="seat-badge turn">行动中</span>' : ''}
+    </div>
+    <div class="seat-stats">
+      <div class="seat-stat ev"><span>EV</span><b>${money(player.ev)}</b></div>
+      <div class="seat-stat"><span>现金</span><b>${money(player.cash)}</b></div>
+      <div class="seat-stat"><span>权益</span><b>${money(player.equity)}</b></div>
+      <div class="seat-stat ${player.debt ? 'red' : ''}"><span>负债</span><b>${money(player.debt)}</b></div>
+      <div class="seat-stat"><span>额度</span><b>${money(credit(player))}</b></div>
+    </div>
+    <div class="seat-assets">
+      <p class="seat-assets-title"><span>资产配置 · ${player.assets.length} 项</span><span>${isSelf ? '' : '手牌 ' + player.hand.length + ' 张'}</span></p>
+      <div class="seat-asset-chips">${assetChips(player)}</div>
+    </div>
+    ${isSelf ? `<div class="seat-detail"><p class="debt-list-title">债务追踪</p><div class="debt-list">${debt}</div>${advice}</div>` : ''}
+  </div>`;
+}
+function renderSelf() {
+  if (!state) return;
+  const others = state.players.filter(player => player.id !== userId);
+  const me = state.players.find(player => player.id === userId);
+  const slots = ['top', 'left', 'right'];
+  others.slice(0, 3).forEach((player, index) => { $('#seat-' + slots[index]).innerHTML = seatHTML(player, false, current()?.id === player.id); });
+  for (let index = others.length; index < 3; index++) $('#seat-' + slots[index]).innerHTML = '';
+  $('#seat-bottom').innerHTML = me ? seatHTML(me, true, current()?.id === me.id) : '';
+}
 function renderScoreboard(){const sorted=[...state.players].sort((a,b)=>b.ev-a.ev);$('#scoreboard').innerHTML=sorted.map((player,index)=>`<div class="score-row ${player.id===userId?'self':''}"><span class="score-rank">${String(index+1).padStart(2,'0')}</span><span class="score-name">${escapeHtml(player.name)}</span><b class="score-value">${money(player.ev)}</b><span class="score-state">${player.status==='alive'?'存续':'淘汰'}</span></div>`).join('');}
-function renderHand(){const player=self();if(!player)return;const allowed=state.phase==='actions'&&current()?.id===userId&&player.status==='alive';$('#hand-note').textContent=allowed?`你已行动 ${player.actions} / ${3+(player.flags.assetBonus||0)} 次`:'等待你的行动回合';$('#hand').innerHTML=player.hand.map(code=>{const card=CARD[code],disabled=!allowed||player.actions>=3+(player.flags.assetBonus||0);const info=card.type==='asset'?`投资 ${money(card.cost)} · 收益 ${money(card.income)}`:card.type==='finance'?`融资 ${money(card.cash)} · ${card.kind==='debt'?'期限 '+card.term+' 回合':card.kind==='equity'?'权益融资':'特殊融资'}`:card.target+' · 策略';return `<article class="card ${card.type} ${disabled?'disabled':''}"><div class="card-top"><span class="card-type">${cardType(card)}</span><span class="card-id">${card.id}</span></div><h3>${escapeHtml(card.name)}</h3><p>${escapeHtml(card.text)}</p><div class="card-foot"><span class="card-cost">${info}</span><button class="play-button" data-play="${card.id}" ${disabled?'disabled':''}>打出</button></div></article>`;}).join('')||'<p class="empty-state">没有手牌。</p>';}
+function cardDetail(card) {
+  const rows = [];
+  if (card.type === 'asset') {
+    rows.push(['资产类别', card.category + '类资产']);
+    rows.push(['投资额', money(card.cost)]);
+    rows.push(['每回合收益', money(card.income)]);
+    rows.push(['ESG 标签', card.esg]);
+    if (card.category === '生产') rows.push(['折旧规则', '每 4 回合收益衰减 25%（第 5/9 回合触发），可用 S05 重置']);
+    rows.push(['特殊效果', card.text]);
+  } else if (card.type === 'finance') {
+    rows.push(['融资类型', card.kind === 'debt' ? '债务融资' : card.kind === 'lease' ? '融资租赁（表外负债，不占信用额度）' : card.kind === 'equity' ? '股权融资' : '特殊融资']);
+    rows.push(['融资额', money(card.cash)]);
+    if (card.term) rows.push(['期限', card.term + ' 回合']);
+    if (card.payment) rows.push(['每回合支付', money(card.payment)]);
+    if (card.principal) rows.push(['到期还本', money(card.principal)]);
+    rows.push(['说明', card.text]);
+  } else if (card.type === 'strategy') {
+    rows.push(['策略类型', card.target === '即时' ? '即时响应（可在他人回合使用）' : card.target === '攻击' ? '攻击类' : '自身增益']);
+    rows.push(['效果说明', card.text]);
+    if (card.target === '攻击') rows.push(['注意', '攻击策略需支付 10 万诉讼费']);
+  } else {
+    rows.push(['PE 修正', card.pe ? (card.pe > 0 ? '+' + card.pe : String(card.pe)) : '无']);
+    rows.push(['全场效果', card.text]);
+  }
+  return rows.map(item => `<div class="detail-row"><span>${escapeHtml(item[0])}</span><b>${escapeHtml(String(item[1]))}</b></div>`).join('');
+}
+let cardDialogCode = null;
+function openCardDetail(code) {
+  const card = CARD[code]; if (!card) return;
+  cardDialogCode = code;
+  $('#card-detail-type').textContent = cardType(card) + '卡 · ' + card.id;
+  $('#card-detail-name').textContent = card.name;
+  $('#card-detail-body').innerHTML = cardDetail(card);
+  const playable = state && state.phase === 'actions' && current()?.id === userId && self()?.hand.includes(code);
+  $('#card-detail-play').style.display = playable ? '' : 'none';
+  $('#card-dialog').showModal();
+}
+function renderHand() {
+  const player = self(); if (!player) return;
+  const allowed = state.phase === 'actions' && current()?.id === userId && player.status === 'alive';
+  const max = 3 + (player.flags.assetBonus || 0);
+  $('#hand-note').textContent = allowed ? `你已行动 ${player.actions} / ${max} 次` : '等待你的行动回合';
+  $('#hand').innerHTML = player.hand.map(code => {
+    const card = CARD[code], disabled = !allowed || player.actions >= max;
+    const info = card.type === 'asset' ? `投资 ${money(card.cost)} · 收益 ${money(card.income)}/回` : card.type === 'finance' ? `融资 ${money(card.cash)} · ${card.kind === 'debt' ? '期限 ' + card.term + ' 回合' : card.kind === 'equity' ? '权益融资' : '特殊融资'}` : card.target + ' · 策略';
+    return `<article class="card ${card.type} ${disabled ? 'disabled' : ''}" data-card="${card.id}">
+      <div class="card-top"><span class="card-type">${cardType(card)}</span><span class="card-id">${card.id}</span></div>
+      <h3>${escapeHtml(card.name)}</h3>
+      <p class="card-text">${escapeHtml(card.text)}</p>
+      <div class="card-stats">${info}</div>
+      <div class="card-foot"><span class="card-longtip">长按看说明</span><button class="play-button" data-play="${card.id}" ${disabled ? 'disabled' : ''}>打出</button></div>
+    </article>`;
+  }).join('') || '<p class="empty-state">没有手牌。</p>';
+}
 function renderLog(){$('#game-log').innerHTML=state.log.map(entry=>`<div class="log-entry"><time>R${entry.round}</time>${escapeHtml(entry.text)}</div>`).join('');}
 
 $('#create-room').addEventListener('click',()=>createRoom().catch(error=>toast(error.message)));
@@ -359,7 +450,24 @@ $('#disconnect-cloudflare').addEventListener('click',()=>{if(state)return toast(
 $('#connect-cloudflare').addEventListener('click',()=>connectCloudflare());
 $('#reset-cloudflare-url').addEventListener('click',async()=>{localStorage.removeItem('capital-empire-cloudflare');const candidate=new CloudflareTransport(DEFAULT_CLOUDFLARE_URL);$('#cloudflare-url').value=DEFAULT_CLOUDFLARE_URL;try{await candidate.api('/api/ping');transport=candidate;setConnection();toast('已恢复默认联机地址。');}catch{toast('默认地址暂不可用，当前保持本地试玩。');}$('#settings-dialog').close();});
 $('#confirm-choice').addEventListener('click',async()=>{if(!pendingChoice)return;const code=pendingChoice;pendingChoice=null;$('#choice-dialog').close();await playCard(code,$('#choice-select').value);});
-document.addEventListener('click',event=>{const play=event.target.closest('[data-play]');if(play)openChoice(play.dataset.play);if(event.target.id==='reveal-market')revealMarket();if(event.target.id==='end-turn')endTurn();if(event.target.id==='toggle-log')$('#log-section').classList.toggle('hidden');});
+let longPressTimer = null, longPressFired = false;
+document.addEventListener('pointerdown', event => {
+  const cardEl = event.target.closest('#hand .card[data-card]');
+  if (!cardEl || event.target.closest('.play-button')) return;
+  longPressFired = false;
+  clearTimeout(longPressTimer);
+  longPressTimer = setTimeout(() => { longPressFired = true; openCardDetail(cardEl.dataset.card); }, 550);
+}, true);
+['pointerup', 'pointercancel'].forEach(type => document.addEventListener(type, () => { clearTimeout(longPressTimer); longPressTimer = null; }, true));
+document.addEventListener('click', event => {
+  const play = event.target.closest('[data-play]');
+  if (play) { if (longPressFired) { longPressFired = false; return; } openChoice(play.dataset.play); }
+  if (event.target.id === 'reveal-market') revealMarket();
+  if (event.target.id === 'end-turn') endTurn();
+  if (event.target.id === 'toggle-log') $('#log-section').classList.toggle('hidden');
+});
+$('#card-detail-close').addEventListener('click', () => { cardDialogCode = null; $('#card-dialog').close(); });
+$('#card-detail-play').addEventListener('click', () => { const code = cardDialogCode; cardDialogCode = null; $('#card-dialog').close(); if (code) openChoice(code); });
 async function connectCloudflare() {
   const base = $('#cloudflare-url').value.trim();
   if (base && !/^https?:\/\//.test(base)) return toast('请输入以 http(s):// 开头的 Worker 地址（留空则使用同域 /api）。');
