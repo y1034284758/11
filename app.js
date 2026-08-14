@@ -37,8 +37,9 @@ const clamp = (value,min,max) => Math.max(min,Math.min(max,value));
 const shuffle = (list) => [...list].sort(() => Math.random() - .5);
 const escapeHtml = (text) => String(text).replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[char]));
 
-let userId = localStorage.getItem('capital-empire-user') || id();
-localStorage.setItem('capital-empire-user', userId);
+// 玩家身份按标签页隔离（sessionStorage）：同一浏览器多个标签页 = 多位玩家，打开即玩
+let userId = sessionStorage.getItem('capital-empire-user') || id();
+sessionStorage.setItem('capital-empire-user', userId);
 let state = null;
 let activeRoom = null;
 let transport = null;
@@ -370,7 +371,7 @@ async function connectCloudflare() {
   else localStorage.removeItem('capital-empire-cloudflare');
   setConnection(); $('#settings-dialog').close(); toast('已连接 Cloudflare 联机服务，创建房间即可跨设备开局。');
 }
-const DEFAULT_CLOUDFLARE_URL = 'https://capital-empire.y1034284758.workers.dev';
+const DEFAULT_CLOUDFLARE_URL = 'https://capital.9oocloud.top';
 async function boot() {
   transport = new LocalTransport();
   const saved = localStorage.getItem('capital-empire-cloudflare');
