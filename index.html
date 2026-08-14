@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./styles.css?v=20260814" />
   </head>
   <body>
     <div class="noise"></div>
@@ -115,6 +115,7 @@
         <p>填入你的 Cloudflare Worker 地址后，创建的房间可让任意设备上的朋友实时加入。地址只保存在当前浏览器。</p>
         <label>Worker 地址<input id="cloudflare-url" placeholder="https://capital-empire.y1034284758.workers.dev" autocomplete="off" /></label>
         <div class="dialog-actions"><button id="disconnect-cloudflare" class="secondary-button" value="cancel" type="button">使用本地试玩</button><button id="connect-cloudflare" class="primary-button" value="default" type="button">连接并保存</button></div>
+        <button id='reset-cloudflare-url' class='text-button' type='button'>恢复默认地址（清除已保存的联机地址）</button>
         <p class="lobby-help">部署方法见项目 README：<code>wrangler deploy</code> 后把 Workers 域名粘贴到这里。留空则使用同域名下的 <code>/api</code>（适合 Cloudflare Pages + Functions）。</p>
       </form>
     </dialog>
@@ -130,6 +131,6 @@
     </dialog>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
-    <script type="module" src="./app.js"></script>
+    <script type="module" src="./app.js?v=20260814"></script>
   </body>
 </html>

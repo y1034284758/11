@@ -357,6 +357,7 @@ $('#start-game').addEventListener('click',()=>startGame());
 $('#settings-button').addEventListener('click',()=>$('#settings-dialog').showModal());
 $('#disconnect-cloudflare').addEventListener('click',()=>{if(state)return toast('请先刷新页面退出当前对局，再切换联机方式。');localStorage.removeItem('capital-empire-cloudflare');transport=new LocalTransport();setConnection();toast('已切换到本地试玩。');});
 $('#connect-cloudflare').addEventListener('click',()=>connectCloudflare());
+$('#reset-cloudflare-url').addEventListener('click',async()=>{localStorage.removeItem('capital-empire-cloudflare');const candidate=new CloudflareTransport(DEFAULT_CLOUDFLARE_URL);$('#cloudflare-url').value=DEFAULT_CLOUDFLARE_URL;try{await candidate.api('/api/ping');transport=candidate;setConnection();toast('已恢复默认联机地址。');}catch{toast('默认地址暂不可用，当前保持本地试玩。');}$('#settings-dialog').close();});
 $('#confirm-choice').addEventListener('click',async()=>{if(!pendingChoice)return;const code=pendingChoice;pendingChoice=null;$('#choice-dialog').close();await playCard(code,$('#choice-select').value);});
 document.addEventListener('click',event=>{const play=event.target.closest('[data-play]');if(play)openChoice(play.dataset.play);if(event.target.id==='reveal-market')revealMarket();if(event.target.id==='end-turn')endTurn();if(event.target.id==='toggle-log')$('#log-section').classList.toggle('hidden');});
 async function connectCloudflare() {
@@ -375,13 +376,23 @@ const DEFAULT_CLOUDFLARE_URL = 'https://capital.9oocloud.top';
 async function boot() {
   transport = new LocalTransport();
   const saved = localStorage.getItem('capital-empire-cloudflare');
-  const target = saved || DEFAULT_CLOUDFLARE_URL;
-  if (target) {
-    $('#cloudflare-url').value = target;
-    const candidate = new CloudflareTransport(target);
-    try { await candidate.api('/api/ping'); transport = candidate; }
-    catch { if (saved) toast('Cloudflare 服务暂不可用，已使用本地试玩。'); }
+  // 依次尝试：已保存地址 → 默认地址（自动跳过失效的旧地址）
+  const candidates = [saved, DEFAULT_CLOUDFLARE_URL].filter((url, index, arr) => url && arr.indexOf(url) === index);
+  let connected = false;
+  for (const url of candidates) {
+    $('#cloudflare-url').value = url;
+    const candidate = new CloudflareTransport(url);
+    try {
+      await candidate.api('/api/ping');
+      transport = candidate;
+      if (url === DEFAULT_CLOUDFLARE_URL && saved && saved !== url) {
+        localStorage.removeItem('capital-empire-cloudflare'); // 旧地址已失效，改用默认
+      }
+      connected = true;
+      break;
+    } catch { /* 尝试下一个候选地址 */ }
   }
+  if (!connected && saved) toast('Cloudflare 服务暂不可用，已使用本地试玩。');
   setConnection();
 }
 boot();
